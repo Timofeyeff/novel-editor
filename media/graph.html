@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .node { cursor: pointer; }
+        .link { stroke: #999; stroke-width: 2px; }
+    </style>
+</head>
+<body>
+    <script>
+        const width = 800, height = 600;
+        const svg = d3.select('body').append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+        let nodes = [], links = [];
+
+        // Получение данных из расширения
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'update') {
+                nodes = event.data.nodes;
+                links = nodes.flatMap(n => 
+                    n.links.map(l => ({ source: n.id, target: l.target }))
+                );
+                updateGraph();
+            }
+        });
+
+        function updateGraph() {
+            // Логика визуализации с D3.js
+            // Здесь нужно реализовать отрисовку узлов и связей
+          // Пример обработчика клика
+            node.on('click', (event, d) => {
+                jumpToNode(d.id);
+            });
+        }
+    </script>
+</body>
+</html>

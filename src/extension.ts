@@ -1,26 +1,71 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as path from 'path';
+import { parseDialogue } from './parser';
+import { GraphViewProvider } from './graphViewProvider';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+    let panel: vscode.WebviewPanel | undefined;
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "novel-editor" is now active!');
+    // Регистрация вьюшки в Activity Bar
+    const graphViewProvider = new GraphViewProvider(context.extensionUri);
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            'novel-editor.graphView', // ID из package.json
+            graphViewProvider
+        )
+    );
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('novel-editor.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from novel_editor!');
+    // Регистрация команды с префиксом novel-editor
+    const showGraphCommand = vscode.commands.registerCommand('novel-editor.showGraph', () => {
+        panel = vscode.window.createWebviewPanel(
+            'novelEditorGraph', // Уникальный идентификатор
+            'Dialogue Flow',
+            vscode.ViewColumn.Two,
+            {}
+        );
+		
+		vscode.window.onDidChangeActiveTextEditor(editor => {
+			if (editor?.document.languageId === 'novel-markdown') {
+				graphViewProvider.updateGraph(editor.document.getText());
+			}
+		});
+
+        panel.webview.html = getWebviewContent(context.extensionPath);
+
+        // Обновление графа при изменении текста
+        vscode.workspace.onDidChangeTextDocument((e) => {
+            if (e.document.languageId === 'novel-markdown' && panel) {
+                const content = e.document.getText();
+                const nodes = parseDialogue(content);
+                panel.webview.postMessage({ type: 'update', nodes });
+            }
+        });
+		
+		// При получении сообщения от WebView
+		panel.webview.onDidReceiveMessage((message) => {
+			if (message.type === 'jumpToNode') {
+				const editor = vscode.window.activeTextEditor;
+				if (editor && editor.document.languageId === 'novel-markdown') {
+					const text = editor.document.getText();
+					const pattern = new RegExp(`^#+\\s+${message.nodeId}\\s*$`, 'm');
+					const match = pattern.exec(text);
+					
+					if (match) {
+						const position = editor.document.positionAt(match.index);
+						editor.selection = new vscode.Selection(position, position);
+						editor.revealRange(new vscode.Range(position, position));
+					}
+				}
+			}
+		});
+
 	});
 
-	context.subscriptions.push(disposable);
+    context.subscriptions.push(showGraphCommand);
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+function getWebviewContent(extensionPath: string): string {
+    const htmlPath = path.join(extensionPath, 'media', 'graph.html');
+    return require('fs').readFileSync(htmlPath, 'utf8');
+}
+

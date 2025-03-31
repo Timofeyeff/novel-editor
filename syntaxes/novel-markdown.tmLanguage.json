@@ -1,0 +1,14 @@
+{
+    "scopeName": "markdown.novel",
+    "patterns": [
+        {
+            "match": "^#\\s+(\\w+)",
+            "name": "entity.name.id.novel"
+        },
+        {
+            "match": "-\\s*\\[(.*?)\\]\\((.*?)\\)",
+            "name": "markup.underline.link.novel"
+        }
+    ],
+    "repository": {}
+}
