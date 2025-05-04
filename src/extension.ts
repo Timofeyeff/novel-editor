@@ -1,71 +1,91 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import { parseDialogue } from './parser';
-import { GraphViewProvider } from './graphViewProvider';
+import * as markdownParser from './parser/markdownParser';
+import * as storyAnalyzer from './analyzer/storyAnalyzer';
+import * as decorations from './utils/decorations';
 
 export function activate(context: vscode.ExtensionContext) {
-    let panel: vscode.WebviewPanel | undefined;
+    console.log('Расширение "Novel Editor" активировано');
 
-    // Регистрация вьюшки в Activity Bar
-    const graphViewProvider = new GraphViewProvider(context.extensionUri);
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
-            'novel-editor.graphView', // ID из package.json
-            graphViewProvider
-        )
-    );
-
-    // Регистрация команды с префиксом novel-editor
-    const showGraphCommand = vscode.commands.registerCommand('novel-editor.showGraph', () => {
-        panel = vscode.window.createWebviewPanel(
-            'novelEditorGraph', // Уникальный идентификатор
-            'Dialogue Flow',
+    // Регистрация команды для открытия предпросмотра
+    let openPreviewCommand = vscode.commands.registerCommand('novel-editor.openPreview', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showInformationMessage('Откройте файл новеллы для предпросмотра');
+            return;
+        }
+        
+        const panel = vscode.window.createWebviewPanel(
+            'novelPreview',
+            'Предпросмотр новеллы',
             vscode.ViewColumn.Two,
-            {}
+            { enableScripts: true }
         );
-		
-		vscode.window.onDidChangeActiveTextEditor(editor => {
-			if (editor?.document.languageId === 'novel-markdown') {
-				graphViewProvider.updateGraph(editor.document.getText());
-			}
-		});
 
-        panel.webview.html = getWebviewContent(context.extensionPath);
+        // Здесь будет логика предпросмотра
+        panel.webview.html = getWebviewContent(editor.document.getText());
+    });
 
-        // Обновление графа при изменении текста
-        vscode.workspace.onDidChangeTextDocument((e) => {
-            if (e.document.languageId === 'novel-markdown' && panel) {
-                const content = e.document.getText();
-                const nodes = parseDialogue(content);
-                panel.webview.postMessage({ type: 'update', nodes });
-            }
-        });
-		
-		// При получении сообщения от WebView
-		panel.webview.onDidReceiveMessage((message) => {
-			if (message.type === 'jumpToNode') {
-				const editor = vscode.window.activeTextEditor;
-				if (editor && editor.document.languageId === 'novel-markdown') {
-					const text = editor.document.getText();
-					const pattern = new RegExp(`^#+\\s+${message.nodeId}\\s*$`, 'm');
-					const match = pattern.exec(text);
-					
-					if (match) {
-						const position = editor.document.positionAt(match.index);
-						editor.selection = new vscode.Selection(position, position);
-						editor.revealRange(new vscode.Range(position, position));
-					}
-				}
-			}
-		});
+    // Регистрация команды для отображения графа сюжета
+    let showStoryGraphCommand = vscode.commands.registerCommand('novel-editor.showStoryGraph', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showInformationMessage('Откройте файл новеллы для анализа сюжета');
+            return;
+        }
 
-	});
+        // Здесь будет логика анализа и отображения графа
+    });
 
-    context.subscriptions.push(showGraphCommand);
+    // Активация декораторов при изменении активного редактора
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+        if (editor) {
+            activateDecorations(editor);
+        }
+    });
+
+    // Активация декораторов для текущего редактора при старте
+    if (vscode.window.activeTextEditor) {
+        activateDecorations(vscode.window.activeTextEditor);
+    }
+
+    context.subscriptions.push(openPreviewCommand, showStoryGraphCommand);
 }
 
-function getWebviewContent(extensionPath: string): string {
-    const htmlPath = path.join(extensionPath, 'media', 'graph.html');
-    return require('fs').readFileSync(htmlPath, 'utf8');
+export function deactivate() {}
+
+export function activateDecorations(editor: vscode.TextEditor) {
+    if (editor.document.languageId === 'markdown') {
+        decorations.applyDecorations(editor);
+    }
 }
 
+function getWebviewContent(markdownContent: string): string {
+    // Простой вариант предпросмотра
+    return `<!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Предпросмотр новеллы</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; }
+            .scene { margin-bottom: 20px; }
+            .scene-title { font-size: 24px; margin-bottom: 10px; }
+            .character { font-weight: bold; color: #0066cc; }
+            .dialogue { margin-left: 20px; margin-bottom: 10px; }
+            .choices { margin-top: 20px; }
+            .choice { padding: 8px 16px; margin: 5px; background: #f0f0f0; cursor: pointer; border-radius: 4px; }
+            .choice:hover { background: #e0e0e0; }
+        </style>
+    </head>
+    <body>
+        <div id="novel-container">
+            <!-- Здесь будет отображаться содержимое -->
+            <p>Загрузка предпросмотра...</p>
+        </div>
+        <script>
+            // Здесь будет логика интерактивного предпросмотра
+        </script>
+    </body>
+    </html>`;
+}

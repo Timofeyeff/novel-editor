@@ -1,47 +1,81 @@
 {
-    "name": "novel-editor",
-    "displayName": "Novel Editor",
-    "description": "Visual dialogue editor for visual novels using Markdown",
-    "version": "0.0.1",
-    "publisher": "Maksim Timofeyeff",
-    "contributes": {
-        "languages": [
-            {
-                "id": "novel-markdown",
-                "aliases": ["Novel Markdown", "novel-markdown"],
-                "extensions": [".novel.md"],
-                "configuration": "./language-configuration.json"
-            }
-        ],
-        "grammars": [
-            {
-                "language": "novel-markdown",
-                "scopeName": "markdown.novel",
-                "path": "./syntaxes/novel-markdown.tmLanguage.json"
-            }
-        ],
-        "views": {
-            "activitybar": [
-                {
-                    "id": "novel-editor.graphView",
-                    "name": "Dialogue Graph",
-                    "icon": "media/icon.svg"
-                }
-            ]
-        },
-        "commands": [
-            {
-                "command": "novel-editor.showGraph",
-                "title": "Show Dialogue Graph"
-            }
-        ],
-        "menus": {
-            "editor/title": [
-                {
-                    "command": "novel-editor.showGraph",
-                    "group": "navigation"
-                }
-            ]
+  "name": "novel-editor",
+  "displayName": "Visual Novel Editor",
+  "description": "Editor for visual novels in markdown format",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.99.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "novel-editor.openPreview",
+        "title": "Novel Editor: Открыть предпросмотр"
+      },
+      {
+        "command": "novel-editor.showStoryGraph",
+        "title": "Novel Editor: Показать схему сюжета"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "novel-editor",
+          "title": "Novel Editor",
+          "icon": "resources/sidebar-icon.svg"
         }
+      ]
+    },
+    "views": {
+      "novel-editor": [
+        {
+          "id": "novel-explorer",
+          "name": "Проводник новеллы"
+        },
+        {
+          "id": "novel-resources",
+          "name": "Ресурсы"
+        }
+      ]
     }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/sinon": "^17.0.4",
+    "@types/vscode": "^1.99.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.25.1",
+    "jsdom": "^26.1.0",
+    "sinon": "^20.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.7",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "d3": "^7.0.0"
+  }
 }

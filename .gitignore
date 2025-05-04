@@ -1,5 +1,2 @@
-out
-dist
+CLAUDE.local.md
 node_modules
-.vscode-test/
-*.vsix
