@@ -6,7 +6,7 @@ suite('Preview Renderer Tests', () => {
     let document: Document;
     
     setup(() => {
-        const dom = new jsdom.JSDOM('<html><body></body></html>');
+        const dom = new jsdom.JSDOM('<html><body><div id="novel-container"></div></body></html>');
         document = dom.window.document;
         // Установка глобального document для тестов
         (global as any).document = document;

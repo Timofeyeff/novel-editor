@@ -47,7 +47,7 @@ const decorations = __importStar(__webpack_require__(2));
 function activate(context) {
     console.log('Расширение "Novel Editor" активировано');
     // Регистрация команды для открытия предпросмотра
-    let openPreviewCommand = vscode.commands.registerCommand('novel-editor.openPreview', () => {
+    let openPreviewCommand = vscode.commands.registerCommand('noveleditor.openPreview', () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             vscode.window.showInformationMessage('Откройте файл новеллы для предпросмотра');
@@ -58,7 +58,7 @@ function activate(context) {
         panel.webview.html = getWebviewContent(editor.document.getText());
     });
     // Регистрация команды для отображения графа сюжета
-    let showStoryGraphCommand = vscode.commands.registerCommand('novel-editor.showStoryGraph', () => {
+    let showStoryGraphCommand = vscode.commands.registerCommand('noveleditor.showStoryGraph', () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             vscode.window.showInformationMessage('Откройте файл новеллы для анализа сюжета');

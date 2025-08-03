@@ -1,11 +1,45 @@
-import * as vscode from 'vscode';
-import * as markdownParser from './parser/markdownParser';
-import * as storyAnalyzer from './analyzer/storyAnalyzer';
-import * as decorations from './utils/decorations';
-
-export function activate(context: vscode.ExtensionContext) {
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.activate = activate;
+exports.deactivate = deactivate;
+exports.activateDecorations = activateDecorations;
+const vscode = __importStar(require("vscode"));
+const decorations = __importStar(require("./utils/decorations"));
+function activate(context) {
     console.log('Расширение "Novel Editor" активировано');
-
     // Регистрация команды для открытия предпросмотра
     let openPreviewCommand = vscode.commands.registerCommand('noveleditor.openPreview', () => {
         const editor = vscode.window.activeTextEditor;
@@ -13,18 +47,10 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage('Откройте файл новеллы для предпросмотра');
             return;
         }
-        
-        const panel = vscode.window.createWebviewPanel(
-            'novelPreview',
-            'Предпросмотр новеллы',
-            vscode.ViewColumn.Two,
-            { enableScripts: true }
-        );
-
+        const panel = vscode.window.createWebviewPanel('novelPreview', 'Предпросмотр новеллы', vscode.ViewColumn.Two, { enableScripts: true });
         // Здесь будет логика предпросмотра
         panel.webview.html = getWebviewContent(editor.document.getText());
     });
-
     // Регистрация команды для отображения графа сюжета
     let showStoryGraphCommand = vscode.commands.registerCommand('noveleditor.showStoryGraph', () => {
         const editor = vscode.window.activeTextEditor;
@@ -32,34 +58,27 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage('Откройте файл новеллы для анализа сюжета');
             return;
         }
-
         // Здесь будет логика анализа и отображения графа
     });
-
     // Активация декораторов при изменении активного редактора
     vscode.window.onDidChangeActiveTextEditor(editor => {
         if (editor) {
             activateDecorations(editor);
         }
     });
-
     // Активация декораторов для текущего редактора при старте
     if (vscode.window.activeTextEditor) {
         activateDecorations(vscode.window.activeTextEditor);
     }
-
     context.subscriptions.push(openPreviewCommand, showStoryGraphCommand);
 }
-
-export function deactivate() {}
-
-export function activateDecorations(editor: vscode.TextEditor) {
+function deactivate() { }
+function activateDecorations(editor) {
     if (editor.document.languageId === 'markdown') {
         decorations.applyDecorations(editor);
     }
 }
-
-function getWebviewContent(markdownContent: string): string {
+function getWebviewContent(markdownContent) {
     // Простой вариант предпросмотра
     return `<!DOCTYPE html>
     <html lang="ru">
@@ -89,3 +108,4 @@ function getWebviewContent(markdownContent: string): string {
     </body>
     </html>`;
 }
+//# sourceMappingURL=extension.js.map

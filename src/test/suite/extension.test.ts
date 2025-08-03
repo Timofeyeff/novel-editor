@@ -18,7 +18,7 @@ suite('Extension Integration Tests', () => {
             dispose: () => {}
         });
         
-        await extension.activate(context as any);
+        extension.activate(context as any);
         
         assert.ok(registerCommandStub.called);
         assert.ok(registerCommandStub.calledWith('noveleditor.openPreview'));
@@ -26,24 +26,21 @@ suite('Extension Integration Tests', () => {
         registerCommandStub.restore();
     });
     
-    test('should apply correct decorations for novel syntax', async () => {
+    test('should apply correct decorations for novel syntax', () => {
         // Создаём mock для редактора
         const editor = {
             document: {
-                getText: () => '@Персонаж\nРеплика персонажа',
+                languageId: 'markdown',
+                getText: () => '@Персонаж [emotion: happy]\nРеплика персонажа',
                 lineAt: (line: number) => ({
-                    text: line === 0 ? '@Персонаж' : 'Реплика персонажа',
-                    range: new vscode.Range(
-                        new vscode.Position(line, 0),
-                        new vscode.Position(line, line === 0 ? 9 : 17)
-                    )
+                    text: line === 0 ? '@Персонаж [emotion: happy]' : 'Реплика персонажа'
                 })
             },
             setDecorations: sinon.spy()
         };
         
         // Активация декораторов
-        await extension.activateDecorations(editor as any);
+        extension.activateDecorations(editor as any);
         
         // Проверка, что метод setDecorations был вызван
         assert.ok(editor.setDecorations.called);
